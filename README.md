@@ -7,7 +7,8 @@ usage: filever [format] file
   filever prints the version information of the given executable file. An
   executable file has a major, minor, patch and build version.
   If no version info is set in the executable file, filever outputs nothing and
-  returns successfully.
+  returns error value 3.
+  In case of success, filever returns 0. Only in that the output is valid.
 
   format  determines the output format, this is a dot-separated list of version
           names "major", "minor", "patch" and "build".
@@ -30,6 +31,11 @@ Usage
 
 You can use this tool in a batch (`.bat`) script like this:
 
-`for /f %%i in ('filever major.minor.patch path\to\file.exe') do set VAR=%%i`
+```
+for /f %%i in ('filever major.minor.patch path\to\file.exe') do set VAR=%%i
+IF %ERRORLEVEL% EQ 0 (
+  echo "The file version is %VAR%"
+)
+```
 
-Using the for-loop is a trick to not have to temporarily copy the output to a file, but to capture it in `VAR` directly.
+(Using the for-loop is a trick to not have to temporarily copy the output to a file, but to capture it in `VAR` directly.)
