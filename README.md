@@ -24,3 +24,12 @@ To build and install this tool, use:
 `go get github.com/gonutz/filever`
 
 There is also a build script `build.bat` which builds a small (stripping symbol and debug info from the result) 32 bit application instead of using the default Go behavior which builds 64 bit executables on 64 bit machines and always includes symbol and debug info.
+
+Usage
+-----
+
+You can use this tool in a batch (`.bat`) script like this:
+
+`for /f %%i in ('filever major.minor.patch path\to\file.exe') do set VAR=%%i`
+
+Using the for-loop is a trick to not have to temporarily copy the output to a file, but to capture it in `VAR` directly.
