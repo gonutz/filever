@@ -27,16 +27,16 @@ func usage() {
 }
 
 const (
-	errInternal      = 1
 	errArguments     = 2
 	errNoVersionInfo = 3
 )
 
 func main() {
 	argCount := len(os.Args) - 1
-	if !(1 <= argCount && argCount <= 2) {
+	if !(1 <= argCount && argCount <= 2) ||
+		(argCount == 1 && isHelpFlag(os.Args[1])) {
 		usage()
-		os.Exit(errArguments)
+		return
 	}
 
 	var format, exePath string
@@ -48,26 +48,40 @@ func main() {
 		exePath = os.Args[2]
 	}
 
-	if _, err := os.Stat(exePath); err != nil {
-		fmt.Println("error: executable not found")
+	if _, err := os.Lstat(exePath); err != nil {
+		fmt.Fprintln(os.Stderr, err)
 		os.Exit(errArguments)
 	}
 
 	// get the version info from the exe file
 	size := w32.GetFileVersionInfoSize(exePath)
 	if size <= 0 {
+		fmt.Fprintf(
+			os.Stderr,
+			"'%s' does not contain version info (GetFileVersionInfoSize returned %d)\n",
+			exePath,
+			size,
+		)
 		os.Exit(errNoVersionInfo)
 	}
 	info := make([]byte, size)
 	ok := w32.GetFileVersionInfo(exePath, info)
 	if !ok {
-		usage()
-		os.Exit(errInternal)
+		fmt.Fprintf(
+			os.Stderr,
+			"'%s' does not contain version info (GetFileVersionInfo returned 0)\n",
+			exePath,
+		)
+		os.Exit(errNoVersionInfo)
 	}
 	fixed, ok := w32.VerQueryValueRoot(info)
 	if !ok {
-		usage()
-		os.Exit(errInternal)
+		fmt.Fprintf(
+			os.Stderr,
+			"'%s' does not contain version info (VerQueryValueRoot returned 0)\n",
+			exePath,
+		)
+		os.Exit(errNoVersionInfo)
 	}
 	version := fixed.FileVersion()
 	major := int(version & 0xFFFF000000000000 >> 48)
@@ -89,10 +103,19 @@ func main() {
 		case "build":
 			output = append(output, strconv.Itoa(build))
 		default:
-			usage()
+			fmt.Fprintf(
+				os.Stderr,
+				"'%s' is not a valid version part\n",
+				part,
+			)
 			os.Exit(errArguments)
 		}
 	}
 
 	fmt.Print(strings.Join(output, "."))
+}
+
+func isHelpFlag(s string) bool {
+	s = strings.ToLower(s)
+	return s == "-h" || s == "-help" || s == "--help" || s == "/h" || s == "/?"
 }
