@@ -4,11 +4,12 @@ filever
 ```
 usage: filever [format] file
 
-  filever prints the version information of the given executable file. An
-  executable file has a major, minor, patch and build version.
+  filever prints the version information of the given executable file to
+  standard ouput.
+  An executable file has a major, minor, patch and build version.
   If no version info is set in the executable file, filever outputs nothing and
   returns error value 3.
-  In case of success, filever returns 0. Only in that the output is valid.
+  filver returns 0 on success. The output is only valid in that case.
 
   format  determines the output format, this is a dot-separated list of version
           names "major", "minor", "patch" and "build".
